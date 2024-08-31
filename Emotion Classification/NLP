@@ -1,0 +1,542 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "3bfa6e6b",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:01:52.839704Z",
+     "iopub.status.busy": "2024-08-31T19:01:52.838540Z",
+     "iopub.status.idle": "2024-08-31T19:01:53.325594Z",
+     "shell.execute_reply": "2024-08-31T19:01:53.324255Z"
+    },
+    "papermill": {
+     "duration": 0.499332,
+     "end_time": "2024-08-31T19:01:53.328352",
+     "exception": false,
+     "start_time": "2024-08-31T19:01:52.829020",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/emotions-dataset-for-nlp/val.txt\n",
+      "/kaggle/input/emotions-dataset-for-nlp/test.txt\n",
+      "/kaggle/input/emotions-dataset-for-nlp/train.txt\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "a456bf38",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:01:53.342644Z",
+     "iopub.status.busy": "2024-08-31T19:01:53.342034Z",
+     "iopub.status.idle": "2024-08-31T19:02:22.106067Z",
+     "shell.execute_reply": "2024-08-31T19:02:22.104755Z"
+    },
+    "papermill": {
+     "duration": 28.774102,
+     "end_time": "2024-08-31T19:02:22.108902",
+     "exception": false,
+     "start_time": "2024-08-31T19:01:53.334800",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "                                                Text Emotions\n",
+      "0  i can go from feeling so hopeless to so damned...  sadness\n",
+      "1   im grabbing a minute to post i feel greedy wrong    anger\n",
+      "2  i am ever feeling nostalgic about the fireplac...     love\n",
+      "3                               i am feeling grouchy    anger\n",
+      "4  ive been feeling a little burdened lately wasn...  sadness\n"
+     ]
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import keras\n",
+    "import tensorflow\n",
+    "import tensorflow as tf\n",
+    "from tensorflow.keras.preprocessing.text import Tokenizer\n",
+    "from tensorflow.keras.preprocessing.sequence import pad_sequences\n",
+    "from sklearn.preprocessing import LabelEncoder\n",
+    "\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from keras.models import Sequential\n",
+    "from keras.layers import Embedding, Flatten, Dense\n",
+    "\n",
+    "\n",
+    "data = pd.read_csv(\"/kaggle/input/emotions-dataset-for-nlp/train.txt\", sep=';')\n",
+    "data.columns = [\"Text\", \"Emotions\"]\n",
+    "print(data.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "4c59dd71",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:02:22.122998Z",
+     "iopub.status.busy": "2024-08-31T19:02:22.122577Z",
+     "iopub.status.idle": "2024-08-31T19:02:22.614597Z",
+     "shell.execute_reply": "2024-08-31T19:02:22.613269Z"
+    },
+    "papermill": {
+     "duration": 0.502606,
+     "end_time": "2024-08-31T19:02:22.617685",
+     "exception": false,
+     "start_time": "2024-08-31T19:02:22.115079",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "texts = data[\"Text\"].tolist()\n",
+    "labels = data[\"Emotions\"].tolist()\n",
+    "\n",
+    "# Tokenize the text data\n",
+    "tokenizer = Tokenizer()\n",
+    "tokenizer.fit_on_texts(texts)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "025baebd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:02:22.632028Z",
+     "iopub.status.busy": "2024-08-31T19:02:22.631571Z",
+     "iopub.status.idle": "2024-08-31T19:02:23.085543Z",
+     "shell.execute_reply": "2024-08-31T19:02:23.084353Z"
+    },
+    "papermill": {
+     "duration": 0.464644,
+     "end_time": "2024-08-31T19:02:23.088340",
+     "exception": false,
+     "start_time": "2024-08-31T19:02:22.623696",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "sequences = tokenizer.texts_to_sequences(texts)\n",
+    "max_length = max([len(seq) for seq in sequences])\n",
+    "padded_sequences = pad_sequences(sequences, maxlen=max_length)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "ba444a63",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:02:23.101915Z",
+     "iopub.status.busy": "2024-08-31T19:02:23.101455Z",
+     "iopub.status.idle": "2024-08-31T19:02:23.117350Z",
+     "shell.execute_reply": "2024-08-31T19:02:23.116046Z"
+    },
+    "papermill": {
+     "duration": 0.025889,
+     "end_time": "2024-08-31T19:02:23.120124",
+     "exception": false,
+     "start_time": "2024-08-31T19:02:23.094235",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Encode the string labels to integers\n",
+    "label_encoder = LabelEncoder()\n",
+    "labels = label_encoder.fit_transform(labels)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "771ec97d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:02:23.134115Z",
+     "iopub.status.busy": "2024-08-31T19:02:23.133648Z",
+     "iopub.status.idle": "2024-08-31T19:02:23.139687Z",
+     "shell.execute_reply": "2024-08-31T19:02:23.138496Z"
+    },
+    "papermill": {
+     "duration": 0.016055,
+     "end_time": "2024-08-31T19:02:23.142325",
+     "exception": false,
+     "start_time": "2024-08-31T19:02:23.126270",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# One-hot encode the labels\n",
+    "one_hot_labels = keras.utils.to_categorical(labels)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "6e249e42",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:02:23.156280Z",
+     "iopub.status.busy": "2024-08-31T19:02:23.155814Z",
+     "iopub.status.idle": "2024-08-31T19:02:23.169051Z",
+     "shell.execute_reply": "2024-08-31T19:02:23.167678Z"
+    },
+    "papermill": {
+     "duration": 0.023291,
+     "end_time": "2024-08-31T19:02:23.171855",
+     "exception": false,
+     "start_time": "2024-08-31T19:02:23.148564",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Split the data into training and testing sets\n",
+    "xtrain, xtest, ytrain, ytest = train_test_split(padded_sequences, \n",
+    "                                                one_hot_labels, \n",
+    "                                                test_size=0.2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "00372eff",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:02:23.186185Z",
+     "iopub.status.busy": "2024-08-31T19:02:23.185079Z",
+     "iopub.status.idle": "2024-08-31T19:03:46.773315Z",
+     "shell.execute_reply": "2024-08-31T19:03:46.771967Z"
+    },
+    "papermill": {
+     "duration": 83.5983,
+     "end_time": "2024-08-31T19:03:46.776035",
+     "exception": false,
+     "start_time": "2024-08-31T19:02:23.177735",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 1/10\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/conda/lib/python3.10/site-packages/keras/src/layers/core/embedding.py:90: UserWarning: Argument `input_length` is deprecated. Just remove it.\n",
+      "  warnings.warn(\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m9s\u001b[0m 20ms/step - accuracy: 0.3822 - loss: 1.5126 - val_accuracy: 0.7131 - val_loss: 0.8394\n",
+      "Epoch 2/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m8s\u001b[0m 19ms/step - accuracy: 0.8722 - loss: 0.4161 - val_accuracy: 0.7975 - val_loss: 0.6293\n",
+      "Epoch 3/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m8s\u001b[0m 20ms/step - accuracy: 0.9826 - loss: 0.0703 - val_accuracy: 0.8244 - val_loss: 0.5883\n",
+      "Epoch 4/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m10s\u001b[0m 19ms/step - accuracy: 0.9928 - loss: 0.0281 - val_accuracy: 0.8103 - val_loss: 0.6774\n",
+      "Epoch 5/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m8s\u001b[0m 19ms/step - accuracy: 0.9953 - loss: 0.0230 - val_accuracy: 0.8141 - val_loss: 0.6760\n",
+      "Epoch 6/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m8s\u001b[0m 19ms/step - accuracy: 0.9971 - loss: 0.0125 - val_accuracy: 0.8138 - val_loss: 0.6921\n",
+      "Epoch 7/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m8s\u001b[0m 21ms/step - accuracy: 0.9977 - loss: 0.0094 - val_accuracy: 0.8163 - val_loss: 0.7266\n",
+      "Epoch 8/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m8s\u001b[0m 20ms/step - accuracy: 0.9977 - loss: 0.0095 - val_accuracy: 0.8062 - val_loss: 0.8674\n",
+      "Epoch 9/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m9s\u001b[0m 21ms/step - accuracy: 0.9981 - loss: 0.0076 - val_accuracy: 0.8103 - val_loss: 0.8002\n",
+      "Epoch 10/10\n",
+      "\u001b[1m400/400\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m8s\u001b[0m 20ms/step - accuracy: 0.9976 - loss: 0.0079 - val_accuracy: 0.8159 - val_loss: 0.8093\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "<keras.src.callbacks.history.History at 0x7cffadd137c0>"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Define the model\n",
+    "model = Sequential()\n",
+    "model.add(Embedding(input_dim=len(tokenizer.word_index) + 1, \n",
+    "                    output_dim=128, input_length=max_length))\n",
+    "model.add(Flatten())\n",
+    "model.add(Dense(units=128, activation=\"relu\"))\n",
+    "model.add(Dense(units=len(one_hot_labels[0]), activation=\"softmax\"))\n",
+    "\n",
+    "model.compile(optimizer=\"adam\", loss=\"categorical_crossentropy\", metrics=[\"accuracy\"])\n",
+    "model.fit(xtrain, ytrain, epochs=10, batch_size=32, validation_data=(xtest, ytest))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "f34d035c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-31T19:03:47.056470Z",
+     "iopub.status.busy": "2024-08-31T19:03:47.055959Z",
+     "iopub.status.idle": "2024-08-31T19:03:47.202962Z",
+     "shell.execute_reply": "2024-08-31T19:03:47.201633Z"
+    },
+    "papermill": {
+     "duration": 0.290914,
+     "end_time": "2024-08-31T19:03:47.206312",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:46.915398",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\u001b[1m1/1\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 75ms/step\n",
+      "['sadness']\n"
+     ]
+    }
+   ],
+   "source": [
+    "input_text = \"She was exhausted last night\"\n",
+    "\n",
+    "# Preprocess the input text\n",
+    "input_sequence = tokenizer.texts_to_sequences([input_text])\n",
+    "padded_input_sequence = pad_sequences(input_sequence, maxlen=max_length)\n",
+    "prediction = model.predict(padded_input_sequence)\n",
+    "predicted_label = label_encoder.inverse_transform([np.argmax(prediction[0])])\n",
+    "print(predicted_label)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ffe98d12",
+   "metadata": {
+    "papermill": {
+     "duration": 0.153669,
+     "end_time": "2024-08-31T19:03:47.503375",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:47.349706",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d13f9574",
+   "metadata": {
+    "papermill": {
+     "duration": 0.145702,
+     "end_time": "2024-08-31T19:03:47.799078",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:47.653376",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "26828628",
+   "metadata": {
+    "papermill": {
+     "duration": 0.226814,
+     "end_time": "2024-08-31T19:03:48.178493",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:47.951679",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "12bb6496",
+   "metadata": {
+    "papermill": {
+     "duration": 0.140145,
+     "end_time": "2024-08-31T19:03:48.474740",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:48.334595",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "022f05d0",
+   "metadata": {
+    "papermill": {
+     "duration": 0.1477,
+     "end_time": "2024-08-31T19:03:48.765104",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:48.617404",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ff73d151",
+   "metadata": {
+    "papermill": {
+     "duration": 0.137498,
+     "end_time": "2024-08-31T19:03:49.043113",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:48.905615",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "57319574",
+   "metadata": {
+    "papermill": {
+     "duration": 0.137898,
+     "end_time": "2024-08-31T19:03:49.324237",
+     "exception": false,
+     "start_time": "2024-08-31T19:03:49.186339",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 605165,
+     "sourceId": 1085454,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30761,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 121.604352,
+   "end_time": "2024-08-31T19:03:51.288593",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-08-31T19:01:49.684241",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
