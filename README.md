@@ -5,17 +5,27 @@ sarahsufi/sarahsufi is a ✨ special ✨ repository because its `README.md` (thi
 You can click the Preview link to take a look at your changes.
 --->
 <h1 align="center">Hi 👋, I'm Sarah</h1>
-<h3 align="center">A passionate data scientist and all things AI</h3>
+<h3 align="center">A passionate data scientist and love all things AI</h3>
 
 - 🔭 I’m currently working on [End-End Chatbot](https://github.com/sarahsufi/End-End-Chatbot/tree/main)
 
-- 🌱 I’m currently learning **Deep learning and Neural Networks**
+- 🌱 I’m currently working as a Data Scientist and BI Engineer
 
 - 💬 Ask me about **NLP and Machine Learning**
 
 - 📫 How to reach me **sarahsufi03@gmail.com**
 
 - ⚡ Fun fact **I am Matcha Enthusiast!**
+
+Projects:
+
+https://github.com/sarahsufi/Text-Classification-NLP
+
+https://github.com/sarahsufi/Dynamic-Pricing-Strategy
+
+https://github.com/sarahsufi/Classification-using-Neural-Networks-Fashion-Data-
+
+
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
