@@ -36,6 +36,8 @@ https://github.com/sarahsufi/NLP-CheetSheet/tree/main
 
 https://github.com/sarahsufi/A-B-Testing-Cheatsheet/tree/main
 
+https://github.com/sarahsufi/Data-Analysis-CheatSheet/tree/main
+
 
 
 <h3 align="left">Connect with me:</h3>
