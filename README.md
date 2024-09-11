@@ -34,6 +34,8 @@ https://github.com/sarahsufi/Machine-Learning-CheatSheet
 
 https://github.com/sarahsufi/NLP-CheetSheet/tree/main
 
+https://github.com/sarahsufi/A-B-Testing-Cheatsheet/tree/main
+
 
 
 <h3 align="left">Connect with me:</h3>
