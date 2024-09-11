@@ -25,6 +25,8 @@ https://github.com/sarahsufi/Dynamic-Pricing-Strategy
 
 https://github.com/sarahsufi/Classification-using-Neural-Networks-Fashion-Data-
 
+https://github.com/sarahsufi/Economic-Indicators--Linear-Regression/tree/main
+
 
 
 <h3 align="left">Connect with me:</h3>
