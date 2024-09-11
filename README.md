@@ -32,6 +32,8 @@ CheatSheets:
 
 https://github.com/sarahsufi/Machine-Learning-CheatSheet
 
+https://github.com/sarahsufi/NLP-CheetSheet/tree/main
+
 
 
 <h3 align="left">Connect with me:</h3>
