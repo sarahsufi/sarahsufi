@@ -9,7 +9,7 @@ You can click the Preview link to take a look at your changes.
 
 - 🔭 I’m currently working on [End-End Chatbot](https://github.com/sarahsufi/End-End-Chatbot/tree/main)
 
-- 🌱 I’m currently working as a Lead Data Scientist (I delve into the world of data engineering and data architecture too often as well) 
+- 🌱 I’m currently working as a Business Data Scientist (I delve into the world of data engineering and data architecture too often as well) 
 - 💬 Ask me about **NLP and Machine Learning**
 
 - 📫 How to reach me **sarahsufi03@gmail.com**
